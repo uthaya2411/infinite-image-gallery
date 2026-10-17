@@ -263,7 +263,16 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 12),
+                        Text(
+                          'A high-resolution photograph captured by ${widget.photo.author}, featured in the ${widget.photo.category} collection. Optimized for crystal-clear mobile display.',
+                          style: const TextStyle(
+                            fontSize: 12.5,
+                            color: Colors.white70,
+                            height: 1.4,
+                          ),
+                        ),
+                        const SizedBox(height: 14),
                         // Spec pills
                         Row(
                           children: [
