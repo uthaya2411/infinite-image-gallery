@@ -52,6 +52,10 @@ class FavoritesScreen extends ConsumerWidget {
 
     return GridView.builder(
       padding: const EdgeInsets.fromLTRB(14, 14, 14, 96),
+      physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+      cacheExtent: 800,
+      addRepaintBoundaries: true,
+      addAutomaticKeepAlives: true,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         childAspectRatio: 0.75,

@@ -44,7 +44,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget build(BuildContext context) {
     final themeMode = ref.watch(themeProvider);
     final isDark = themeMode == ThemeMode.dark;
-    final favCount = ref.watch(favoritesProvider).length;
+    final favCount = ref.watch(favoritesProvider.select((list) => list.length));
 
     return Scaffold(
       extendBody: true,
@@ -288,6 +288,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       onRefresh: () => ref.read(galleryProvider.notifier).loadPhotos(),
       child: CustomScrollView(
         controller: _scrollController,
+        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+        cacheExtent: 800,
         slivers: [
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(14, 14, 14, 96),
@@ -301,6 +303,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               delegate: SliverChildBuilderDelegate(
                 (context, index) => PhotoCard(photo: photos[index]),
                 childCount: photos.length,
+                addRepaintBoundaries: true,
+                addAutomaticKeepAlives: true,
               ),
             ),
           ),
