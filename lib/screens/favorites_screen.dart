@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/favorites_provider.dart';
+import '../widgets/glass_box.dart';
 import '../widgets/photo_card.dart';
 
 class FavoritesScreen extends ConsumerWidget {
@@ -9,39 +10,53 @@ class FavoritesScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final favorites = ref.watch(favoritesProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     if (favorites.isEmpty) {
       return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.favorite_border,
-              size: 64,
-              color: Colors.grey.withValues(alpha: 0.5),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'No Favorites Yet',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Tap the heart on any photo to save it here',
-              style: TextStyle(color: Colors.grey),
-            ),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              GlassBox(
+                blur: 16,
+                opacity: isDark ? 0.35 : 0.6,
+                borderRadius: BorderRadius.circular(40),
+                padding: const EdgeInsets.all(24),
+                child: const Icon(
+                  Icons.favorite_border,
+                  size: 48,
+                  color: Colors.redAccent,
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'No Favorites Yet',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Tap the heart icon on any photo to save it to your personal collection',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: isDark ? Colors.white60 : Colors.black54,
+                  fontSize: 13,
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }
 
     return GridView.builder(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 96),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        childAspectRatio: 0.82,
-        crossAxisSpacing: 10,
-        mainAxisSpacing: 10,
+        childAspectRatio: 0.75,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
       ),
       itemCount: favorites.length,
       itemBuilder: (context, index) {

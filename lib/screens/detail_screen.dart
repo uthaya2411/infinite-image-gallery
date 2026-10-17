@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import '../models/photo.dart';
 import '../providers/favorites_provider.dart';
+import '../widgets/glass_box.dart';
 
 class DetailScreen extends ConsumerStatefulWidget {
   final Photo photo;
@@ -49,10 +50,17 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Image saved to Gallery!'),
-            backgroundColor: Colors.green,
+          SnackBar(
+            content: const Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.white, size: 20),
+                SizedBox(width: 8),
+                Text('Image saved to Gallery!'),
+              ],
+            ),
+            backgroundColor: Colors.green.shade700,
             behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
         );
       }
@@ -61,8 +69,9 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to save image: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: Colors.red.shade700,
             behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
         );
       }
@@ -88,145 +97,283 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
   @override
   Widget build(BuildContext context) {
     final isFav = ref.watch(favoritesProvider).any((p) => p.id == widget.photo.id);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text(widget.photo.author),
-        actions: [
-          IconButton(
-            icon: Icon(
-              isFav ? Icons.favorite : Icons.favorite_border,
-              color: isFav ? Colors.redAccent : null,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: GlassBox(
+            blur: 12,
+            opacity: 0.3,
+            borderRadius: BorderRadius.circular(30),
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+              onPressed: () => Navigator.pop(context),
             ),
-            onPressed: () {
-              ref.read(favoritesProvider.notifier).toggleFavorite(widget.photo);
-            },
           ),
-          IconButton(
-            icon: const Icon(Icons.share),
-            onPressed: _shareImage,
+        ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: GlassBox(
+              blur: 12,
+              opacity: 0.3,
+              borderRadius: BorderRadius.circular(30),
+              child: IconButton(
+                icon: Icon(
+                  isFav ? Icons.favorite : Icons.favorite_border,
+                  color: isFav ? Colors.redAccent : Colors.white,
+                  size: 20,
+                ),
+                onPressed: () {
+                  ref.read(favoritesProvider.notifier).toggleFavorite(widget.photo);
+                },
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Padding(
+            padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, right: 12.0),
+            child: GlassBox(
+              blur: 12,
+              opacity: 0.3,
+              borderRadius: BorderRadius.circular(30),
+              child: IconButton(
+                icon: const Icon(Icons.share, color: Colors.white, size: 20),
+                onPressed: _shareImage,
+              ),
+            ),
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            GestureDetector(
-              onDoubleTap: _handleDoubleTap,
-              child: SizedBox(
-                height: 380,
-                child: InteractiveViewer(
-                  transformationController: _transformController,
-                  minScale: 1.0,
-                  maxScale: 4.0,
-                  child: Hero(
-                    tag: 'photo-${widget.photo.id}',
-                    child: CachedNetworkImage(
-                      imageUrl: widget.photo.detailUrl,
-                      fit: BoxFit.contain,
-                      placeholder: (context, url) => Center(
-                        child: CachedNetworkImage(
-                          imageUrl: widget.photo.thumbnailUrl,
-                          fit: BoxFit.contain,
+      body: Stack(
+        children: [
+          // Ambient blurred background
+          Positioned.fill(
+            child: CachedNetworkImage(
+              imageUrl: widget.photo.thumbnailUrl,
+              fit: BoxFit.cover,
+            ),
+          ),
+          Positioned.fill(
+            child: Container(
+              color: (isDark ? Colors.black : Colors.grey.shade900).withValues(alpha: 0.8),
+            ),
+          ),
+          // Main content
+          SafeArea(
+            child: Column(
+              children: [
+                Expanded(
+                  child: Center(
+                    child: GestureDetector(
+                      onDoubleTap: _handleDoubleTap,
+                      child: InteractiveViewer(
+                        transformationController: _transformController,
+                        minScale: 1.0,
+                        maxScale: 4.0,
+                        child: Hero(
+                          tag: 'photo-${widget.photo.id}',
+                          child: CachedNetworkImage(
+                            imageUrl: widget.photo.detailUrl,
+                            fit: BoxFit.contain,
+                            placeholder: (context, url) => Center(
+                              child: CachedNetworkImage(
+                                imageUrl: widget.photo.thumbnailUrl,
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                            errorWidget: (context, url, error) => const Center(
+                              child: Icon(Icons.broken_image, size: 64, color: Colors.grey),
+                            ),
+                          ),
                         ),
-                      ),
-                      errorWidget: (context, url, error) => const Center(
-                        child: Icon(Icons.broken_image, size: 64, color: Colors.grey),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const CircleAvatar(
-                        child: Icon(Icons.person),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                // Glassmorphic Info Card
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: GlassBox(
+                    blur: 20,
+                    opacity: 0.35,
+                    borderRadius: BorderRadius.circular(24),
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
                           children: [
-                            Text(
-                              widget.photo.author,
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
+                            Container(
+                              padding: const EdgeInsets.all(2),
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: LinearGradient(
+                                  colors: [Colors.purpleAccent, Colors.blueAccent],
+                                ),
+                              ),
+                              child: const CircleAvatar(
+                                radius: 20,
+                                backgroundColor: Colors.white24,
+                                child: Icon(Icons.person, color: Colors.white, size: 22),
                               ),
                             ),
-                            Text(
-                              'Photo #${widget.photo.id}',
-                              style: TextStyle(
-                                color: Theme.of(context).textTheme.bodySmall?.color,
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    widget.photo.author,
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    'Photo #${widget.photo.id} • Unsplash',
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      color: Colors.white70,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  const Divider(),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'Image Information',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 12),
-                  _infoRow(Icons.aspect_ratio, 'Dimensions',
-                      '${widget.photo.width} × ${widget.photo.height} px'),
-                  const SizedBox(height: 8),
-                  _infoRow(Icons.link, 'Source', 'Unsplash via Picsum Photos'),
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 48,
-                    child: ElevatedButton.icon(
-                      onPressed: _isDownloading ? null : _downloadImage,
-                      icon: _isDownloading
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Icon(Icons.download),
-                      label: Text(
-                        _isDownloading ? 'Saving to Gallery...' : 'Save to Gallery',
-                      ),
+                        const SizedBox(height: 16),
+                        // Spec pills
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _specGlassPill(
+                                Icons.aspect_ratio,
+                                'Dimensions',
+                                '${widget.photo.width} × ${widget.photo.height}',
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: _specGlassPill(
+                                Icons.high_quality,
+                                'Resolution',
+                                '${(widget.photo.width * widget.photo.height / 1000000).toStringAsFixed(1)} MP',
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 18),
+                        // Glassmorphic Download Button
+                        InkWell(
+                          onTap: _isDownloading ? null : _downloadImage,
+                          borderRadius: BorderRadius.circular(16),
+                          child: Container(
+                            width: double.infinity,
+                            height: 52,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  Colors.indigo.shade600,
+                                  Colors.purple.shade600,
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.purple.withValues(alpha: 0.35),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Center(
+                              child: _isDownloading
+                                  ? const SizedBox(
+                                      width: 22,
+                                      height: 22,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2.5,
+                                        valueColor: AlwaysStoppedAnimation(Colors.white),
+                                      ),
+                                    )
+                                  : const Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(Icons.download, color: Colors.white, size: 20),
+                                        SizedBox(width: 10),
+                                        Text(
+                                          'Save to Gallery',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 15,
+                                            letterSpacing: 0.3,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _infoRow(IconData icon, String label, String value) {
-    return Row(
-      children: [
-        Icon(icon, size: 18, color: Colors.grey),
-        const SizedBox(width: 8),
-        Text(
-          '$label: ',
-          style: const TextStyle(fontWeight: FontWeight.w500),
+  Widget _specGlassPill(IconData icon, String label, String value) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.15),
+          width: 0.8,
         ),
-        Expanded(
-          child: Text(
-            value,
-            style: const TextStyle(color: Colors.grey),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: Colors.white70),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(fontSize: 11, color: Colors.white60),
+                ),
+                Text(
+                  value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

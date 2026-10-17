@@ -32,13 +32,25 @@ class ImageGalleryApp extends ConsumerWidget {
       themeMode: themeMode,
       theme: ThemeData(
         useMaterial3: true,
-        colorSchemeSeed: Colors.indigo,
+        colorSchemeSeed: const Color(0xFF6366F1),
+        scaffoldBackgroundColor: const Color(0xFFF6F8FC),
         brightness: Brightness.light,
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+        ),
       ),
       darkTheme: ThemeData(
         useMaterial3: true,
-        colorSchemeSeed: Colors.indigo,
+        colorSchemeSeed: const Color(0xFF6366F1),
+        scaffoldBackgroundColor: const Color(0xFF0C0E14),
         brightness: Brightness.dark,
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+        ),
       ),
       home: const HomeScreen(),
     );

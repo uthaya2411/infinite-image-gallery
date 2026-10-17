@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/favorites_provider.dart';
 import '../providers/gallery_provider.dart';
 import '../providers/theme_provider.dart';
+import '../widgets/glass_box.dart';
 import '../widgets/photo_card.dart';
 import 'favorites_screen.dart';
 
@@ -46,72 +47,178 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final favCount = ref.watch(favoritesProvider).length;
 
     return Scaffold(
+      extendBody: true,
       appBar: AppBar(
+        titleSpacing: 16,
         title: _isSearching
-            ? TextField(
-                controller: _searchController,
-                autofocus: true,
-                decoration: const InputDecoration(
-                  hintText: 'Search by author name...',
-                  border: InputBorder.none,
+            ? GlassBox(
+                blur: 10,
+                opacity: isDark ? 0.35 : 0.6,
+                borderRadius: BorderRadius.circular(16),
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                child: TextField(
+                  controller: _searchController,
+                  autofocus: true,
+                  decoration: InputDecoration(
+                    hintText: 'Search by author name...',
+                    border: InputBorder.none,
+                    hintStyle: TextStyle(
+                      color: isDark ? Colors.white60 : Colors.black54,
+                      fontSize: 14,
+                    ),
+                  ),
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                  onChanged: (query) {
+                    ref.read(galleryProvider.notifier).search(query);
+                  },
                 ),
-                onChanged: (query) {
-                  ref.read(galleryProvider.notifier).search(query);
-                },
               )
-            : const Text(
-                'Image Gallery',
-                style: TextStyle(fontWeight: FontWeight.bold),
+            : Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(7),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF6366F1), Color(0xFFA855F7)],
+                      ),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.photo_library_rounded, color: Colors.white, size: 18),
+                  ),
+                  const SizedBox(width: 10),
+                  const Text(
+                    'Image Gallery',
+                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 19),
+                  ),
+                ],
               ),
         actions: [
-          IconButton(
-            icon: Icon(_isSearching ? Icons.close : Icons.search),
-            onPressed: () {
-              setState(() {
-                if (_isSearching) {
-                  _isSearching = false;
-                  _searchController.clear();
-                  ref.read(galleryProvider.notifier).search('');
-                } else {
-                  _isSearching = true;
-                }
-              });
-            },
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: GlassBox(
+              blur: 10,
+              opacity: isDark ? 0.35 : 0.6,
+              borderRadius: BorderRadius.circular(20),
+              child: IconButton(
+                icon: Icon(_isSearching ? Icons.close : Icons.search, size: 20),
+                onPressed: () {
+                  setState(() {
+                    if (_isSearching) {
+                      _isSearching = false;
+                      _searchController.clear();
+                      ref.read(galleryProvider.notifier).search('');
+                    } else {
+                      _isSearching = true;
+                    }
+                  });
+                },
+              ),
+            ),
           ),
-          IconButton(
-            icon: Icon(isDark ? Icons.light_mode : Icons.dark_mode),
-            onPressed: () {
-              ref.read(themeProvider.notifier).toggleTheme();
-            },
+          const SizedBox(width: 8),
+          Padding(
+            padding: const EdgeInsets.only(top: 8, bottom: 8, right: 14),
+            child: GlassBox(
+              blur: 10,
+              opacity: isDark ? 0.35 : 0.6,
+              borderRadius: BorderRadius.circular(20),
+              child: IconButton(
+                icon: Icon(isDark ? Icons.light_mode : Icons.dark_mode, size: 20),
+                onPressed: () {
+                  ref.read(themeProvider.notifier).toggleTheme();
+                },
+              ),
+            ),
           ),
         ],
       ),
       body: _currentIndex == 0 ? _buildGalleryView() : const FavoritesScreen(),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentIndex,
-        onDestinationSelected: (index) {
-          setState(() => _currentIndex = index);
-        },
-        destinations: [
-          const NavigationDestination(
-            icon: Icon(Icons.photo_library_outlined),
-            selectedIcon: Icon(Icons.photo_library),
-            label: 'Explore',
-          ),
-          NavigationDestination(
-            icon: Badge(
-              isLabelVisible: favCount > 0,
-              label: Text('$favCount'),
-              child: const Icon(Icons.favorite_outline),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+          child: GlassBox(
+            blur: 16,
+            opacity: isDark ? 0.45 : 0.75,
+            borderRadius: BorderRadius.circular(32),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildNavItem(
+                  index: 0,
+                  icon: Icons.photo_library_outlined,
+                  activeIcon: Icons.photo_library,
+                  label: 'Explore',
+                  isDark: isDark,
+                ),
+                _buildNavItem(
+                  index: 1,
+                  icon: Icons.favorite_border,
+                  activeIcon: Icons.favorite,
+                  label: 'Favorites',
+                  badgeCount: favCount,
+                  isDark: isDark,
+                ),
+              ],
             ),
-            selectedIcon: Badge(
-              isLabelVisible: favCount > 0,
-              label: Text('$favCount'),
-              child: const Icon(Icons.favorite),
-            ),
-            label: 'Favorites',
           ),
-        ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavItem({
+    required int index,
+    required IconData icon,
+    required IconData activeIcon,
+    required String label,
+    required bool isDark,
+    int badgeCount = 0,
+  }) {
+    final isSelected = _currentIndex == index;
+
+    return InkWell(
+      onTap: () => setState(() => _currentIndex = index),
+      borderRadius: BorderRadius.circular(20),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? (isDark ? Colors.white.withValues(alpha: 0.15) : const Color(0xFF6366F1).withValues(alpha: 0.12))
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          children: [
+            Badge(
+              isLabelVisible: badgeCount > 0,
+              label: Text('$badgeCount'),
+              backgroundColor: Colors.redAccent,
+              child: Icon(
+                isSelected ? activeIcon : icon,
+                size: 20,
+                color: isSelected
+                    ? (isDark ? Colors.white : const Color(0xFF6366F1))
+                    : (isDark ? Colors.white60 : Colors.black54),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                color: isSelected
+                    ? (isDark ? Colors.white : const Color(0xFF6366F1))
+                    : (isDark ? Colors.white60 : Colors.black54),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -183,13 +290,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         controller: _scrollController,
         slivers: [
           SliverPadding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.fromLTRB(14, 14, 14, 96),
             sliver: SliverGrid(
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
-                childAspectRatio: 0.82,
-                crossAxisSpacing: 10,
-                mainAxisSpacing: 10,
+                childAspectRatio: 0.75,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
               ),
               delegate: SliverChildBuilderDelegate(
                 (context, index) => PhotoCard(photo: photos[index]),
@@ -200,7 +307,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           if (galleryState.isLoadingMore)
             const SliverToBoxAdapter(
               child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 24),
+                padding: EdgeInsets.only(bottom: 100),
                 child: Center(
                   child: CircularProgressIndicator(),
                 ),
