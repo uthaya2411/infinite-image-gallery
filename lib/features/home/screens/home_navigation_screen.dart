@@ -35,6 +35,7 @@ class _HomeNavigationScreenState extends ConsumerState<HomeNavigationScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     
+    ref.watch(themeModeProvider);
     final isDark = theme.brightness == Brightness.dark;
     final favCount = ref.watch(favoritesNotifierProvider.select((list) => list.length));
     final galleryState = ref.watch(galleryNotifierProvider);
@@ -42,6 +43,7 @@ class _HomeNavigationScreenState extends ConsumerState<HomeNavigationScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        titleSpacing: 12,
         title: _isSearching
             ? TextField(
                 controller: _searchController,
@@ -60,9 +62,10 @@ class _HomeNavigationScreenState extends ConsumerState<HomeNavigationScreen> {
                 },
               )
             : Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(6),
+                    padding: const EdgeInsets.all(5),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
@@ -70,16 +73,16 @@ class _HomeNavigationScreenState extends ConsumerState<HomeNavigationScreen> {
                           theme.colorScheme.secondary,
                         ],
                       ),
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(Icons.photo_library_rounded, color: Colors.white, size: 20),
+                    child: const Icon(Icons.photo_library_rounded, color: Colors.white, size: 18),
                   ),
-                  const SizedBox(width: 10),
-                  const Text('Lumina Gallery'),
+                  const SizedBox(width: 8),
+                  const Text('Lumina Gallery', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 19)),
                   if (repo.isDemoMode) ...[
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 6),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
                       decoration: BoxDecoration(
                         color: Colors.amber.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(6),
