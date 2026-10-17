@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/favorites_provider.dart';
 import '../providers/gallery_provider.dart';
 import '../providers/theme_provider.dart';
-import '../widgets/glass_box.dart';
 import '../widgets/photo_card.dart';
 import 'favorites_screen.dart';
 
@@ -47,14 +46,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final favCount = ref.watch(favoritesProvider.select((list) => list.length));
 
     return Scaffold(
-      extendBody: true,
+      extendBody: false,
       appBar: AppBar(
         titleSpacing: 16,
         title: _isSearching
-            ? GlassBox(
-                blur: 10,
-                opacity: isDark ? 0.35 : 0.6,
-                borderRadius: BorderRadius.circular(16),
+            ? Container(
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isDark ? Colors.white.withValues(alpha: 0.15) : Colors.black.withValues(alpha: 0.1),
+                  ),
+                ),
                 padding: const EdgeInsets.symmetric(horizontal: 14),
                 child: TextField(
                   controller: _searchController,
@@ -98,10 +101,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         actions: [
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
-            child: GlassBox(
-              blur: 10,
-              opacity: isDark ? 0.35 : 0.6,
-              borderRadius: BorderRadius.circular(20),
+            child: Container(
+              decoration: BoxDecoration(
+                color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isDark ? Colors.white.withValues(alpha: 0.12) : Colors.black.withValues(alpha: 0.08),
+                ),
+              ),
               child: IconButton(
                 icon: Icon(_isSearching ? Icons.close : Icons.search, size: 20),
                 onPressed: () {
@@ -121,10 +128,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           const SizedBox(width: 8),
           Padding(
             padding: const EdgeInsets.only(top: 8, bottom: 8, right: 14),
-            child: GlassBox(
-              blur: 10,
-              opacity: isDark ? 0.35 : 0.6,
-              borderRadius: BorderRadius.circular(20),
+            child: Container(
+              decoration: BoxDecoration(
+                color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isDark ? Colors.white.withValues(alpha: 0.12) : Colors.black.withValues(alpha: 0.08),
+                ),
+              ),
               child: IconButton(
                 icon: Icon(isDark ? Icons.light_mode : Icons.dark_mode, size: 20),
                 onPressed: () {
@@ -138,12 +149,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       body: _currentIndex == 0 ? _buildGalleryView() : const FavoritesScreen(),
       bottomNavigationBar: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-          child: GlassBox(
-            blur: 16,
-            opacity: isDark ? 0.45 : 0.75,
-            borderRadius: BorderRadius.circular(32),
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 10),
+          child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xE61E2230) : const Color(0xF2FFFFFF),
+              borderRadius: BorderRadius.circular(32),
+              border: Border.all(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.15)
+                    : Colors.white.withValues(alpha: 0.8),
+                width: 1.2,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.08),
+                  blurRadius: 16,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
@@ -289,10 +314,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       child: CustomScrollView(
         controller: _scrollController,
         physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-        cacheExtent: 800,
+        cacheExtent: 400,
         slivers: [
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(14, 14, 14, 96),
+            padding: const EdgeInsets.fromLTRB(14, 14, 14, 20),
             sliver: SliverGrid(
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,

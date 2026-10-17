@@ -53,15 +53,21 @@ class PhotoCard extends ConsumerWidget {
                     child: CachedNetworkImage(
                       imageUrl: photo.thumbnailUrl,
                       fit: BoxFit.cover,
-                      memCacheWidth: 450,
-                      memCacheHeight: 600,
-                      fadeInDuration: const Duration(milliseconds: 180),
+                      memCacheWidth: 360,
+                      memCacheHeight: 480,
+                      fadeInDuration: const Duration(milliseconds: 100),
                       placeholder: (context, url) => Container(
                         color: isDark
                             ? const Color(0xFF1E2230)
                             : const Color(0xFFE8ECF4),
-                        child: const Center(
-                          child: CircularProgressIndicator(strokeWidth: 2),
+                        child: Center(
+                          child: Icon(
+                            Icons.photo_outlined,
+                            size: 24,
+                            color: isDark
+                                ? Colors.white.withValues(alpha: 0.18)
+                                : Colors.black.withValues(alpha: 0.18),
+                          ),
                         ),
                       ),
                       errorWidget: (context, url, error) => Container(

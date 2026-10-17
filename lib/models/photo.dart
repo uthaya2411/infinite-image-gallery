@@ -16,7 +16,7 @@ class Photo {
   });
 
   /// Optimized medium-size thumbnail for grid view
-  String get thumbnailUrl => 'https://picsum.photos/id/$id/600/450';
+  String get thumbnailUrl => 'https://picsum.photos/id/$id/360/480';
 
   /// High-resolution version for detail screen
   String get detailUrl => 'https://picsum.photos/id/$id/1200/900';
