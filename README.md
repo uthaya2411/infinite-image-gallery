@@ -8,7 +8,7 @@ Developed for the **Gnxtace Technologies Flutter Intermediate Developer Intervie
 
 ## 📱 Submission Deliverables
 
-- **Git Repository:** [Local Git Repository / Remote Link]
+- **Git Repository:** https://github.com/uthaya2411/infinite-image-gallery
 - **Runnable APK:** [`infinite-image-gallery.apk`](./infinite-image-gallery.apk) (48 MB AOT Release build)
 - **Built & Tested On:** Physical Samsung Galaxy M21 (Android 12/13) & Google Pixel 6 (API 33)
 - **Test Suite:** `flutter test` (5/5 unit and widget tests passing, 0 analyzer issues)
