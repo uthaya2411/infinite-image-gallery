@@ -1,57 +1,60 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:infinite_image_gallery/core/storage/local_storage_service.dart';
-import 'package:infinite_image_gallery/features/gallery/presentation/providers/gallery_notifier.dart';
-import 'package:infinite_image_gallery/features/gallery/presentation/providers/gallery_state.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:infinite_image_gallery/models/photo.dart';
+import 'package:infinite_image_gallery/providers/gallery_provider.dart';
+import 'package:infinite_image_gallery/services/api_service.dart';
+import 'package:mocktail/mocktail.dart';
+
+class MockApiService extends Mock implements ApiService {}
 
 void main() {
-  test('GalleryNotifier loads initial mock items and paginates successfully', () async {
-    SharedPreferences.setMockInitialValues({});
-    final prefs = await SharedPreferences.getInstance();
+  late MockApiService mockApi;
 
-    final container = ProviderContainer(
-      overrides: [
-        sharedPreferencesProvider.overrideWithValue(prefs),
-      ],
-    );
-    addTearDown(container.dispose);
-
-    // Load initial
-    await container.read(galleryNotifierProvider.notifier).loadInitial();
-    final state = container.read(galleryNotifierProvider);
-
-    expect(state.status, equals(GalleryStatus.success));
-    expect(state.images.isNotEmpty, isTrue);
-    expect(state.page, equals(1));
-
-    final initialCount = state.images.length;
-
-    // Load next page (Infinite Scroll Pagination)
-    await container.read(galleryNotifierProvider.notifier).loadNextPage();
-    final pagedState = container.read(galleryNotifierProvider);
-
-    expect(pagedState.page, equals(2));
-    expect(pagedState.images.length, greaterThan(initialCount));
+  setUp(() {
+    mockApi = MockApiService();
   });
 
-  test('GalleryNotifier filters items by category', () async {
-    SharedPreferences.setMockInitialValues({});
-    final prefs = await SharedPreferences.getInstance();
+  const testPhotos = [
+    Photo(
+      id: '1',
+      author: 'John Doe',
+      width: 1000,
+      height: 800,
+      url: 'https://unsplash.com/1',
+      downloadUrl: 'https://picsum.photos/id/1/1000/800',
+    ),
+    Photo(
+      id: '2',
+      author: 'Jane Smith',
+      width: 1200,
+      height: 900,
+      url: 'https://unsplash.com/2',
+      downloadUrl: 'https://picsum.photos/id/2/1200/900',
+    ),
+  ];
+
+  test('GalleryNotifier loads photos and filters by search', () async {
+    when(() => mockApi.getPhotos(page: 1, limit: 20))
+        .thenAnswer((_) async => testPhotos);
 
     final container = ProviderContainer(
       overrides: [
-        sharedPreferencesProvider.overrideWithValue(prefs),
+        apiServiceProvider.overrideWithValue(mockApi),
       ],
     );
     addTearDown(container.dispose);
 
-    // Select Animals category
-    container.read(galleryNotifierProvider.notifier).selectCategory('animals');
-    await Future.delayed(const Duration(milliseconds: 350));
+    // Initial load
+    await container.read(galleryProvider.notifier).loadPhotos();
 
-    final state = container.read(galleryNotifierProvider);
-    expect(state.selectedCategory, equals('animals'));
-    expect(state.images.every((img) => img.tags.contains('animals')), isTrue);
+    final state = container.read(galleryProvider);
+    expect(state.photos.length, 2);
+    expect(state.isLoading, false);
+
+    // Search filter
+    container.read(galleryProvider.notifier).search('Jane');
+    final filtered = container.read(galleryProvider).filteredPhotos;
+    expect(filtered.length, 1);
+    expect(filtered.first.author, 'Jane Smith');
   });
 }

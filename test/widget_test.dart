@@ -1,11 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:infinite_image_gallery/core/storage/local_storage_service.dart';
 import 'package:infinite_image_gallery/main.dart';
+import 'package:infinite_image_gallery/providers/favorites_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  testWidgets('App renders HomeNavigationScreen with Explore and Favorites tabs',
+  testWidgets('Renders Home screen with Explore and Favorites tabs',
       (WidgetTester tester) async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
@@ -15,27 +15,23 @@ void main() {
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
         ],
-        child: const InfiniteGalleryApp(),
+        child: const ImageGalleryApp(),
       ),
     );
 
-    // Pump frames to render widgets (Shimmer runs continuously, so we use pump with duration)
-    await tester.pump(const Duration(milliseconds: 500));
+    // Initial frame
+    await tester.pump(const Duration(milliseconds: 300));
 
-    // Verify Title and Navigation Tabs
-    expect(find.text('Lumina Gallery'), findsOneWidget);
+    // Verify AppBar Title and Tabs
+    expect(find.text('Image Gallery'), findsOneWidget);
     expect(find.text('Explore'), findsOneWidget);
     expect(find.text('Favorites'), findsOneWidget);
 
-    // Verify Category Filter Chips are present
-    expect(find.text('All'), findsOneWidget);
-    expect(find.text('Nature'), findsOneWidget);
-
-    // Tap on Favorites tab
+    // Switch to Favorites tab
     await tester.tap(find.text('Favorites'));
-    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pump(const Duration(milliseconds: 300));
 
-    // Verify empty favorites view is displayed
+    // Empty state should be visible
     expect(find.text('No Favorites Yet'), findsOneWidget);
   });
 }
