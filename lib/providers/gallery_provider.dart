@@ -4,6 +4,16 @@ import '../services/api_service.dart';
 
 final apiServiceProvider = Provider<ApiService>((ref) => ApiService());
 
+const availableCategories = [
+  'All',
+  'Nature',
+  'Architecture',
+  'Travel',
+  'Portraits',
+  'Minimal',
+  'Tech',
+];
+
 class GalleryState {
   final List<Photo> photos;
   final bool isLoading;
@@ -12,6 +22,8 @@ class GalleryState {
   final int page;
   final bool hasMore;
   final String searchQuery;
+  final String selectedCategory;
+  final bool isMasonry;
 
   const GalleryState({
     this.photos = const [],
@@ -21,14 +33,24 @@ class GalleryState {
     this.page = 1,
     this.hasMore = true,
     this.searchQuery = '',
+    this.selectedCategory = 'All',
+    this.isMasonry = true,
   });
 
   List<Photo> get filteredPhotos {
-    if (searchQuery.trim().isEmpty) return photos;
-    final query = searchQuery.trim().toLowerCase();
-    return photos.where((p) {
-      return p.author.toLowerCase().contains(query) || p.id.contains(query);
-    }).toList();
+    var list = photos;
+    if (selectedCategory != 'All') {
+      list = list.where((p) => p.category == selectedCategory).toList();
+    }
+    if (searchQuery.trim().isNotEmpty) {
+      final query = searchQuery.trim().toLowerCase();
+      list = list.where((p) {
+        return p.author.toLowerCase().contains(query) ||
+            p.id.contains(query) ||
+            p.category.toLowerCase().contains(query);
+      }).toList();
+    }
+    return list;
   }
 
   GalleryState copyWith({
@@ -39,6 +61,8 @@ class GalleryState {
     int? page,
     bool? hasMore,
     String? searchQuery,
+    String? selectedCategory,
+    bool? isMasonry,
   }) {
     return GalleryState(
       photos: photos ?? this.photos,
@@ -48,6 +72,8 @@ class GalleryState {
       page: page ?? this.page,
       hasMore: hasMore ?? this.hasMore,
       searchQuery: searchQuery ?? this.searchQuery,
+      selectedCategory: selectedCategory ?? this.selectedCategory,
+      isMasonry: isMasonry ?? this.isMasonry,
     );
   }
 }
@@ -102,6 +128,14 @@ class GalleryNotifier extends Notifier<GalleryState> {
 
   void search(String query) {
     state = state.copyWith(searchQuery: query);
+  }
+
+  void selectCategory(String category) {
+    state = state.copyWith(selectedCategory: category);
+  }
+
+  void toggleLayout() {
+    state = state.copyWith(isMasonry: !state.isMasonry);
   }
 }
 

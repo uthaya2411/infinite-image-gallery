@@ -1,3 +1,4 @@
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/favorites_provider.dart';
@@ -50,21 +51,15 @@ class FavoritesScreen extends ConsumerWidget {
       );
     }
 
-    return GridView.builder(
+    return MasonryGridView.count(
+      crossAxisCount: 2,
+      mainAxisSpacing: 12,
+      crossAxisSpacing: 12,
       padding: const EdgeInsets.fromLTRB(14, 14, 14, 20),
       physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-      cacheExtent: 400,
-      addRepaintBoundaries: true,
-      addAutomaticKeepAlives: true,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 0.75,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-      ),
       itemCount: favorites.length,
       itemBuilder: (context, index) {
-        return PhotoCard(photo: favorites[index]);
+        return PhotoCard(photo: favorites[index], isMasonry: true);
       },
     );
   }

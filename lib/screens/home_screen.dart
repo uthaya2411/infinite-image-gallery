@@ -1,3 +1,4 @@
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/favorites_provider.dart';
@@ -99,6 +100,32 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ],
               ),
         actions: [
+          // Layout Toggle (Masonry vs Grid)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Container(
+              decoration: BoxDecoration(
+                color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isDark ? Colors.white.withValues(alpha: 0.12) : Colors.black.withValues(alpha: 0.08),
+                ),
+              ),
+              child: IconButton(
+                tooltip: 'Toggle Layout',
+                icon: Icon(
+                  ref.watch(galleryProvider.select((s) => s.isMasonry))
+                      ? Icons.dashboard_rounded
+                      : Icons.grid_view_rounded,
+                  size: 20,
+                ),
+                onPressed: () {
+                  ref.read(galleryProvider.notifier).toggleLayout();
+                },
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: Container(
@@ -250,6 +277,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   Widget _buildGalleryView() {
     final galleryState = ref.watch(galleryProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     if (galleryState.isLoading) {
       return const Center(child: CircularProgressIndicator());
@@ -316,23 +344,98 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
         cacheExtent: 400,
         slivers: [
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(14, 14, 14, 20),
-            sliver: SliverGrid(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: 0.75,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-              ),
-              delegate: SliverChildBuilderDelegate(
-                (context, index) => PhotoCard(photo: photos[index]),
-                childCount: photos.length,
-                addRepaintBoundaries: true,
-                addAutomaticKeepAlives: true,
+          // Horizontal Category Filter Chips
+          SliverToBoxAdapter(
+            child: Container(
+              height: 48,
+              margin: const EdgeInsets.only(top: 4, bottom: 6),
+              child: ListView.separated(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                scrollDirection: Axis.horizontal,
+                itemCount: availableCategories.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 8),
+                itemBuilder: (context, index) {
+                  final cat = availableCategories[index];
+                  final isSelected = galleryState.selectedCategory == cat;
+                  return InkWell(
+                    onTap: () => ref.read(galleryProvider.notifier).selectCategory(cat),
+                    borderRadius: BorderRadius.circular(16),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                      decoration: BoxDecoration(
+                        gradient: isSelected
+                            ? const LinearGradient(
+                                colors: [Color(0xFF6366F1), Color(0xFFA855F7)],
+                              )
+                            : null,
+                        color: isSelected
+                            ? null
+                            : (isDark
+                                ? Colors.white.withValues(alpha: 0.08)
+                                : Colors.black.withValues(alpha: 0.05)),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: isSelected
+                              ? Colors.transparent
+                              : (isDark
+                                  ? Colors.white.withValues(alpha: 0.12)
+                                  : Colors.black.withValues(alpha: 0.08)),
+                          width: 1,
+                        ),
+                      ),
+                      child: Center(
+                        child: Text(
+                          cat,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                            color: isSelected
+                                ? Colors.white
+                                : (isDark ? Colors.white70 : Colors.black87),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
           ),
+          // Masonry or Standard Grid Layout
+          galleryState.isMasonry
+              ? SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(14, 6, 14, 20),
+                  sliver: SliverMasonryGrid.count(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 12,
+                    crossAxisSpacing: 12,
+                    childCount: photos.length,
+                    itemBuilder: (context, index) => PhotoCard(
+                      photo: photos[index],
+                      isMasonry: true,
+                    ),
+                  ),
+                )
+              : SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(14, 6, 14, 20),
+                  sliver: SliverGrid(
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      childAspectRatio: 0.75,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                    ),
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) => PhotoCard(
+                        photo: photos[index],
+                        isMasonry: false,
+                      ),
+                      childCount: photos.length,
+                      addRepaintBoundaries: true,
+                      addAutomaticKeepAlives: true,
+                    ),
+                  ),
+                ),
           if (galleryState.isLoadingMore)
             const SliverToBoxAdapter(
               child: Padding(

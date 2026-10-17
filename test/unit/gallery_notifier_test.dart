@@ -57,4 +57,39 @@ void main() {
     expect(filtered.length, 1);
     expect(filtered.first.author, 'Jane Smith');
   });
+
+  test('GalleryNotifier filters photos by category', () async {
+    when(() => mockApi.getPhotos(page: 1, limit: 20))
+        .thenAnswer((_) async => testPhotos);
+
+    final container = ProviderContainer(
+      overrides: [
+        apiServiceProvider.overrideWithValue(mockApi),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await container.read(galleryProvider.notifier).loadPhotos();
+
+    // Select category of first photo
+    final targetCategory = testPhotos.first.category;
+    container.read(galleryProvider.notifier).selectCategory(targetCategory);
+
+    final state = container.read(galleryProvider);
+    expect(state.selectedCategory, targetCategory);
+    expect(state.filteredPhotos.every((p) => p.category == targetCategory), isTrue);
+  });
+
+  test('GalleryNotifier toggles layout between masonry and grid', () {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+
+    expect(container.read(galleryProvider).isMasonry, isTrue);
+
+    container.read(galleryProvider.notifier).toggleLayout();
+    expect(container.read(galleryProvider).isMasonry, isFalse);
+
+    container.read(galleryProvider.notifier).toggleLayout();
+    expect(container.read(galleryProvider).isMasonry, isTrue);
+  });
 }

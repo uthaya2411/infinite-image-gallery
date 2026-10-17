@@ -21,6 +21,7 @@ class DetailScreen extends ConsumerStatefulWidget {
 class _DetailScreenState extends ConsumerState<DetailScreen> {
   final TransformationController _transformController = TransformationController();
   bool _isDownloading = false;
+  double _downloadProgress = 0.0;
 
   void _handleDoubleTap() {
     if (_transformController.value != Matrix4.identity()) {
@@ -44,6 +45,13 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
       await Dio().download(
         widget.photo.downloadUrl,
         savePath,
+        onReceiveProgress: (received, total) {
+          if (total > 0 && mounted) {
+            setState(() {
+              _downloadProgress = received / total;
+            });
+          }
+        },
       );
 
       await Gal.putImage(savePath);
@@ -76,7 +84,12 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
         );
       }
     } finally {
-      if (mounted) setState(() => _isDownloading = false);
+      if (mounted) {
+        setState(() {
+          _isDownloading = false;
+          _downloadProgress = 0.0;
+        });
+      }
     }
   }
 
@@ -297,13 +310,30 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
                             ),
                             child: Center(
                               child: _isDownloading
-                                  ? const SizedBox(
-                                      width: 22,
-                                      height: 22,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2.5,
-                                        valueColor: AlwaysStoppedAnimation(Colors.white),
-                                      ),
+                                  ? Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        SizedBox(
+                                          width: 18,
+                                          height: 18,
+                                          child: CircularProgressIndicator(
+                                            value: _downloadProgress > 0 ? _downloadProgress : null,
+                                            strokeWidth: 2.2,
+                                            valueColor: const AlwaysStoppedAnimation(Colors.white),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Text(
+                                          _downloadProgress > 0
+                                              ? 'Saving ${(_downloadProgress * 100).toInt()}%'
+                                              : 'Downloading...',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                      ],
                                     )
                                   : const Row(
                                       mainAxisAlignment: MainAxisAlignment.center,

@@ -7,8 +7,13 @@ import '../screens/detail_screen.dart';
 
 class PhotoCard extends ConsumerWidget {
   final Photo photo;
+  final bool isMasonry;
 
-  const PhotoCard({super.key, required this.photo});
+  const PhotoCard({
+    super.key,
+    required this.photo,
+    this.isMasonry = false,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -44,7 +49,7 @@ class PhotoCard extends ConsumerWidget {
               );
             },
             child: AspectRatio(
-              aspectRatio: 3 / 4,
+              aspectRatio: isMasonry ? photo.masonryAspectRatio : (3 / 4),
               child: Stack(
                 fit: StackFit.expand,
                 children: [
@@ -110,12 +115,12 @@ class PhotoCard extends ConsumerWidget {
                         ),
                       ),
                       child: Text(
-                        '#${photo.id}',
+                        '#${photo.id} • ${photo.category}',
                         style: const TextStyle(
-                          fontSize: 11,
+                          fontSize: 10,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
-                          letterSpacing: 0.5,
+                          letterSpacing: 0.3,
                         ),
                       ),
                     ),
